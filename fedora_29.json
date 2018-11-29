@@ -1,0 +1,21 @@
+{
+    "variables": {
+
+    },
+    "sensitive-variables": [
+        "password"
+    ],
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "name": "{{user `vm_name`}}",
+            "guest_os_type"
+        }
+    ],
+    "provisioners": [
+
+    ],  
+    "post-processors": [
+
+    ]    
+}
