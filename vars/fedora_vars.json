@@ -1,6 +1,8 @@
 {
     "iso_dir": "iso",
     "vmdk_dir": "vmdk",
+    "vagrant_dir": "vagrant",
+    "vagrant_box_name": "confdev.box",
     "http_root_dir": "http",
     "swap_disk_name": "swap.vmdk",
     "home_disk_name": "home.vmdk",
@@ -24,5 +26,6 @@
     "guest_ip": "",
     "guest_port": "22",
     "hostname": "confdev",
-    "username": "conf"
+    "username": "conf",
+    "os_type": "Fedora_64"
 }
