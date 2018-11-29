@@ -7,3 +7,11 @@ How to run:
 - Step 2: Make sure you've installed both vagrant and packer.
     - `brew install packer`
     -  Download vagrant from [their website](https://www.vagrantup.com/downloads.html)
+- Step 3: Run `packer build -force fedora_29.json` to build the virtualbox image.
+    - Right now, this keeps the virtualbox image mounted in virtualbox-- change `keep_input_artifact` from `true` to `false`, and `keep_registered` from `true` to `false`.
+- Step 4: cd into the vagrant directory, and call the following:
+    - `vagrant box add conf-dev.box`
+    - `vagrant up`
+    - `vagrant ssh`
+
+That's it! Nice and simple!
