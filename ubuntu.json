@@ -1,0 +1,190 @@
+{
+    "variables": {
+        "username": "xg",
+        "password": "xeograph",
+        "vm_name": "xgdev_base",
+        "ubuntu_url": "releases.ubuntu.com/16.04.5/",
+        "ubuntu_checksum_filename": "MD5SUMS",
+        "iso_name": "ubuntu-16.04.5-server-amd64.iso",
+        "iso_location": "iso",
+        "cpu_count": "4",
+        "memory_size": "9728",
+        "vram_size": "96",
+        "pae_status": "off",
+        "usb_status": "on",
+        "swap_size": "40000",
+        "boot_size": "40000",
+        "home_size": "250000",
+        "disk_format": "VMDK", 
+        "swap_disk_name": "vmdk/swap.vmdk", 
+        "home_disk_name": "vmdk/home.vmdk", 
+        "storage_type": "sata",
+        "storage_controller_name": "SATA Controller",
+        "http_root": "http",
+        "host_ip": "",
+        "host_port": "2222",
+        "guest_ip": "",
+        "guest_port": "22",
+        "hostname": "xgdev",
+        "eclipse_filename": "eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz"
+    },
+    "sensitive-variables": [
+        "password"
+    ],
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "name": "{{user `vm_name`}}",
+            "vm_name": "{{user `vm_name`}}",
+            "guest_os_type": "Ubuntu_64",
+            "iso_urls": [
+                "{{user `iso_location`}}/{{user `iso_name`}}",
+                "{{user `ubuntu_url`}}{{user `iso_name`}}"
+            ],
+            "iso_target_path": "{{user `iso_location`}}",
+            "iso_checksum": "24636fd103a2a43c95659f1c3c63718e",
+            "iso_checksum_type": "md5",
+            "iso_checksum_url": "{{user `ubuntu_url`}}{{user `ubuntu_checksum_filename`}}",
+            "shutdown_command": "echo '{{user `password`}}' | sudo -S shutdown -P now",
+            "disk_size": "{{user `boot_size`}}",
+            "hard_drive_nonrotational": true,
+            "hard_drive_interface": "{{user `storage_type`}}",
+            "http_directory": "{{user `http_root`}}",
+            "vboxmanage": [
+                [
+                    "createmedium", 
+                    "--filename", "{{user `home_disk_name`}}", 
+                    "--size", "{{user `home_size`}}",
+                    "--format", "{{user `disk_format`}}"
+                ],
+                [
+                    "createmedium", 
+                    "--filename", "{{user `swap_disk_name`}}", 
+                    "--size", "{{user `swap_size`}}",
+                    "--format", "{{user `disk_format`}}"
+                ],
+                [
+                    "storageattach", "{{.Name}}", 
+                    "--storagectl", "{{user `storage_controller_name`}}", 
+                    "--port", "1", 
+                    "--medium", "{{user `swap_disk_name`}}",
+                    "--type", "hdd"
+                ],
+                [
+                    "storageattach", "{{.Name}}", 
+                    "--storagectl", "{{user `storage_controller_name`}}", 
+                    "--port", "2", 
+                    "--medium", "{{user `home_disk_name`}}",
+                    "--type", "hdd"
+                ],
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--cpus", "{{user `cpu_count`}}", 
+                    "--memory", "{{user `memory_size`}}", 
+                    "--vram", "{{user `vram_size`}}", 
+                    "--pae", "{{user `pae_status`}}", 
+                    "--usb", "{{user `usb_status`}}"
+                ], 
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--boot1", "floppy", 
+                    "--boot2", "dvd", 
+                    "--boot3", "disk" 
+                ],
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--nic1", "nat", 
+                    "--nictype1", "Am79C970A", 
+                    "--nic2", "hostonly", 
+                    "--hostonlyadapter2", "vboxnet0", 
+                    "--nictype2", "Am79C970A"
+                ],
+                [
+                    "modifyvm", "{{.Name}}",
+                    "--natpf1", "guest_ssh, tcp, {{user `host_ip`}}, {{user `host_port`}}, {{user `guest_ip`}}, {{user `guest_port`}}"
+                ]
+            ],
+            "ssh_wait_timeout": "10m",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "headless": true,
+            "keep_registered": true,
+            "boot_wait": "5s",
+            "boot_command": [
+                "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "/install/vmlinuz",
+                " auto",
+                " url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+                " interface=enp0s3",
+                " console-setup/ask_detect=false",
+                " debconf/frontend=noninteractive",
+                " debian-installer=en_US",
+                " fb=false",
+                " initrd=/install/initrd.gz",
+                " kbd-chooser/method=us",
+                " keyboard-configuration/layout=USA",
+                " keyboard-configuration/variant=USA",
+                " locale=en_US",
+                " hostname={{user `hostname`}}",
+                " grub-installer/bootdev=/dev/sda",
+                " passwd/user-fullname={{user `username`}}",
+                " passwd/username={{user `username`}}",
+                " passwd/user-password={{user `password`}}",
+                " passwd/user-password-again={{user `password`}}",
+                " noapic",
+                " -- ",
+                "<enter><wait>"
+            ]
+        }
+    ],
+
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "eclipse/{{user `eclipse_filename`}}",
+            "destination": "~/"
+        },
+        {
+            "type": "file",
+            "source": "scripts/launch-eclipse.sh",
+            "destination":"~/"
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/make_swap.sh",
+                "scripts/make_home.sh",
+                "scripts/make_users.sh",
+                "scripts/setup_ssh.sh",
+                "scripts/install_dependencies.sh",
+                "scripts/setup_workspace.sh",
+                "scripts/install_eclipse.sh",
+                "scripts/update_bashrc.sh"
+            ],
+            "pause_before": "5s",
+            "execute_command": "echo '{{user `password`}}' | sudo -S env {{ .Vars }} {{ .Path }}",
+            "expect_disconnect": true,
+            "environment_vars": [
+                "USERNAME={{user `username`}}",
+                "PASSWORD={{user `password`}}",
+                "ECLIPSE={{user `eclipse_filename`}}",
+                "HOME_DIR=/home/{{user `username`}}"
+            ]
+        }
+    ],
+
+    "post-processors": [  
+        {  
+             "type": "vagrant",  
+             "override": {  
+                  "virtualbox": {  
+                      "output": "vagrant/xgdev.box"  
+                  }  
+             },
+             "keep_input_artifact": true  
+        }  
+   ]
+}
