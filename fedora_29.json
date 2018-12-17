@@ -1,0 +1,101 @@
+{
+    "variables": {
+
+    },
+    "sensitive-variables": [
+        "password"
+    ],
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "name": "{{user `vm_name`}}",
+            "guest_os_type": "{{user `os_type`}}",
+            "iso_urls": [
+                "{{user `iso_dir`}}/{{user `fedora_iso_name`}}",
+                "{{user `fedora_download_base_url`}}{{user `fedora_iso_name`}}"
+            ],
+            "iso_target_path": "{{user `iso_dir`}}",
+            "iso_checksum_url": "{{user `fedora_checksum_url`}}",
+            "shutdown_command": "echo '{{user `password`}}' | sudo -S shutdown -P now",
+            "disk_size": "{{user `boot_size`}}",
+            "hard_drive_nonrotational": true,
+            "hard_drive_interface": "{{user `storage_type`}}",
+            "http_directory": "{{user `http_root`}}",
+            "vboxmanage": [
+                [
+                    "createmedium", 
+                    "--filename", "{{user `home_disk_name`}}", 
+                    "--size", "{{user `home_size`}}",
+                    "--format", "{{user `disk_format`}}"
+                ],
+                [
+                    "createmedium", 
+                    "--filename", "{{user `swap_disk_name`}}", 
+                    "--size", "{{user `swap_size`}}",
+                    "--format", "{{user `disk_format`}}"
+                ],
+                [
+                    "storageattach", "{{.Name}}", 
+                    "--storagectl", "{{user `storage_controller_name`}}", 
+                    "--port", "1", 
+                    "--medium", "{{user `swap_disk_name`}}",
+                    "--type", "hdd"
+                ],
+                [
+                    "storageattach", "{{.Name}}", 
+                    "--storagectl", "{{user `storage_controller_name`}}", 
+                    "--port", "2", 
+                    "--medium", "{{user `home_disk_name`}}",
+                    "--type", "hdd"
+                ],
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--cpus", "{{user `cpu_count`}}", 
+                    "--memory", "{{user `memory_size`}}", 
+                    "--vram", "{{user `vram_size`}}", 
+                    "--pae", "{{user `pae_status`}}", 
+                    "--usb", "{{user `usb_status`}}"
+                ], 
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--boot1", "floppy", 
+                    "--boot2", "dvd", 
+                    "--boot3", "disk" 
+                ],
+                [
+                    "modifyvm", "{{.Name}}", 
+                    "--nic1", "nat", 
+                    "--nictype1", "Am79C970A", 
+                    "--nic2", "hostonly", 
+                    "--hostonlyadapter2", "vboxnet0", 
+                    "--nictype2", "Am79C970A"
+                ],
+                [
+                    "modifyvm", "{{.Name}}",
+                    "--natpf1", "guest_ssh, tcp, {{user `host_ip`}}, {{user `host_port`}}, {{user `guest_ip`}}, {{user `guest_port`}}"
+                ]
+            ],
+            "ssh_wait_timeout": "10m",
+            "ssh_username": "{{user `username`}}",
+            "ssh_password": "{{user `password`}}",
+            "headless": true,
+            "keep_registered": true,
+            "boot_wait": "5s",
+            "boot_command": ["???"]
+        }
+    ],
+    "provisioners": [
+
+    ],  
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "override": {
+                "virtualbox": {
+                    "output": "{{user `vagrant_dir`}}/{{user `vagrant_box_name`}}"
+                }
+            },
+            "keep_input_artifact": true
+        }
+    ]    
+}

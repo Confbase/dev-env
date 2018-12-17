@@ -7,8 +7,10 @@ How to run:
 - Step 2: Make sure you've installed both vagrant and packer.
     - `brew install packer`
     -  Download vagrant from [their website](https://www.vagrantup.com/downloads.html)
-- Step 3: Run `packer build -force fedora_29.json` to build the virtualbox image.
+    -  Download VirtualBox from [their website](https://www.virtualbox.org/wiki/Downloads)
+- Step 3: Run `packer build -var-file=public/vars.json -var-file=private/vars.json -force fedora_29.json` to build the virtualbox image.
     - Right now, this keeps the virtualbox image mounted in virtualbox-- change `keep_input_artifact` from `true` to `false`, and `keep_registered` from `true` to `false`.
+    - Feel free to supply values as you wish by adding `-var 'key=value'` onto that command. Read more about user variables on the [packer website](https://www.packer.io/docs/templates/user-variables.html)
 - Step 4: cd into the vagrant directory, and call the following:
     - `vagrant box add conf-dev.box`
     - `vagrant up`
